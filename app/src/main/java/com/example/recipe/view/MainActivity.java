@@ -4,18 +4,20 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 import com.example.recipe.App;
-import com.example.recipe.model.DBRecipe;
+import com.example.recipe.R;
 import java.util.ArrayList;
 
 public class MainActivity extends Activity implements View.OnClickListener {
-    private DBRecipe dbRecipes;
     private ListView mListView;
-    private Button add;
-    private Button search;
+    private Button addButton, searchBtn, showAllBtn;
+    private EditText searchEdit;
     private ArrayList<String> listRecipes;
     private ArrayAdapter<String> adapter;
 
@@ -24,25 +26,40 @@ public class MainActivity extends Activity implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        add = findViewById(R.id.addButton);
-        search = findViewById(R.id.searchButton);
-        add.setOnClickListener(this);
-        search.setOnClickListener(this);
-
-        dbRecipes = App.getApp().getDBRecipes();
         mListView = findViewById(R.id.list);
+        addButton = findViewById(R.id.addButton);
+        searchBtn = findViewById(R.id.searchBtn);
+        showAllBtn = findViewById(R.id.showAllBtn);
+        searchEdit = findViewById(R.id.searchEdit);
 
-        loadRecipes();
+        addButton.setOnClickListener(this);
+        searchBtn.setOnClickListener(this);
+        showAllBtn.setOnClickListener(this);
+
+        loadAllRecipes();
+
+        // При клике на элемент списка — открываем просмотр
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String selected = listRecipes.get(position);
+                // Извлекаем ID рецепта (первое число до " | ")
+                String recipeId = selected.split(" \\| ")[0];
+                Intent intent = new Intent(MainActivity.this, ViewRecipeActivity.class);
+                intent.putExtra("recipe_id", recipeId);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        loadRecipes();
+        loadAllRecipes();
     }
 
-    private void loadRecipes() {
-        listRecipes = dbRecipes.selectAll();
+    private void loadAllRecipes() {
+        listRecipes = App.getApp().getDBRecipes().selectAll();
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, listRecipes);
         mListView.setAdapter(adapter);
     }
@@ -52,9 +69,18 @@ public class MainActivity extends Activity implements View.OnClickListener {
         if (v.getId() == R.id.addButton) {
             Intent intent = new Intent(this, AddRecipeActivity.class);
             startActivity(intent);
-        } else if (v.getId() == R.id.searchButton) {
-            Intent intent = new Intent(this, SearchActivity.class);
-            startActivity(intent);
+        } else if (v.getId() == R.id.searchBtn) {
+            String query = searchEdit.getText().toString().trim();
+            if (query.isEmpty()) {
+                Toast.makeText(this, "Введите название для поиска", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            listRecipes = App.getApp().getDBRecipes().searchByName(query);
+            adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, listRecipes);
+            mListView.setAdapter(adapter);
+        } else if (v.getId() == R.id.showAllBtn) {
+            searchEdit.setText("");
+            loadAllRecipes();
         }
     }
 }

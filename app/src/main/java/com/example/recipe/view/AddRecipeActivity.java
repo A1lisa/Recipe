@@ -2,47 +2,96 @@ package com.example.recipe.view;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.recipe.App;
 import com.example.recipe.R;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class AddRecipeActivity extends AppCompatActivity implements View.OnClickListener {
-    private Button saveButton;
-    private Button exitButton;
-    private EditText editName, editCategory, editIngredients, editInstructions, editTime, editDifficulty;
+    private Button saveButton, exitButton;
+    private EditText editName, editIngredients, editInstructions, editTime;
+    private Spinner spinnerCategory, spinnerDifficulty;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_recipe);
+        // Проверяем, режим редактирования или добавления
+        boolean isEditMode = getIntent().getBooleanExtra("edit_mode", false);
+        if (isEditMode) {
+            String editId = getIntent().getStringExtra("recipe_id");
+            if (editId != null) {
+                long id = Long.parseLong(editId);
+                String[] data = App.getApp().getDBRecipes().find(id);
+                editName.setText(data[1]);
+                // Выбираем категорию в спиннере
+                for (int i = 0; i < spinnerCategory.getCount(); i++) {
+                    if (spinnerCategory.getItemAtPosition(i).toString().equals(data[2])) {
+                        spinnerCategory.setSelection(i);
+                        break;
+                    }
+                }
+                editIngredients.setText(data[3]);
+                editInstructions.setText(data[4]);
+                editTime.setText(data[5]);
+                // Выбираем сложность
+                for (int i = 0; i < spinnerDifficulty.getCount(); i++) {
+                    if (spinnerDifficulty.getItemAtPosition(i).toString().equals(data[6])) {
+                        spinnerDifficulty.setSelection(i);
+                        break;
+                    }
+                }
+                saveButton.setText("Сохранить");
+            }
+        }
 
         editName = findViewById(R.id.editName);
-        editCategory = findViewById(R.id.editCategory);
         editIngredients = findViewById(R.id.editIngredients);
         editInstructions = findViewById(R.id.editInstructions);
         editTime = findViewById(R.id.editTime);
-        editDifficulty = findViewById(R.id.editDifficulty);
+        spinnerCategory = findViewById(R.id.spinnerCategory);
+        spinnerDifficulty = findViewById(R.id.spinnerDifficulty);
         saveButton = findViewById(R.id.saveButton);
         exitButton = findViewById(R.id.exitButton);
 
         saveButton.setOnClickListener(this);
         exitButton.setOnClickListener(this);
+
+        // Загружаем категории из БД
+        ArrayList<String> categories = App.getApp().getDBRecipes().getAllCategories();
+        if (categories.isEmpty()) {
+            categories = new ArrayList<>(Arrays.asList("Завтрак", "Обед", "Ужин", "Десерт", "Салат", "Супы", "Выпечка"));
+        }
+        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, categories);
+        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerCategory.setAdapter(categoryAdapter);
+
+        // Сложность
+        ArrayList<String> difficulties = new ArrayList<>(Arrays.asList("Легко", "Средне", "Сложно"));
+        ArrayAdapter<String> difficultyAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, difficulties);
+        difficultyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerDifficulty.setAdapter(difficultyAdapter);
     }
 
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.saveButton) {
             String name = editName.getText().toString().trim();
-            String category = editCategory.getText().toString().trim();
+            String category = spinnerCategory.getSelectedItem().toString();
             String ingredients = editIngredients.getText().toString().trim();
             String instructions = editInstructions.getText().toString().trim();
             String timeStr = editTime.getText().toString().trim();
-            String difficulty = editDifficulty.getText().toString().trim();
+            String difficulty = spinnerDifficulty.getSelectedItem().toString();
 
-            if (name.isEmpty() || category.isEmpty() || ingredients.isEmpty() || instructions.isEmpty()) {
+            if (name.isEmpty() || ingredients.isEmpty() || instructions.isEmpty()) {
                 Toast.makeText(this, R.string.msg_empty_field, Toast.LENGTH_LONG).show();
                 return;
             }
@@ -52,11 +101,20 @@ public class AddRecipeActivity extends AppCompatActivity implements View.OnClick
                 time = Integer.parseInt(timeStr);
             }
 
-            App.getApp().getDBRecipes().insert(name, category, ingredients, instructions, time, difficulty);
-            Toast.makeText(this, R.string.msg_add_success, Toast.LENGTH_LONG).show();
-            finish();
-        } else if (v.getId() == R.id.exitButton) {
+            boolean isEditMode = getIntent().getBooleanExtra("edit_mode", false);
+            if (isEditMode) {
+                String editId = getIntent().getStringExtra("recipe_id");
+                if (editId != null) {
+                    int id = Integer.parseInt(editId);
+                    App.getApp().getDBRecipes().update(id, name, category, ingredients, instructions, time, difficulty);
+                    Toast.makeText(this, "Рецепт обновлён!", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                App.getApp().getDBRecipes().insert(name, category, ingredients, instructions, time, difficulty);
+                Toast.makeText(this, R.string.msg_add_success, Toast.LENGTH_SHORT).show();
+            }
             finish();
         }
+
     }
 }

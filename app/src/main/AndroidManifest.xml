@@ -13,6 +13,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Recipe">
         <activity
+            android:name=".view.ViewRecipeActivity"
+            android:exported="false" />
+        <activity
             android:name=".view.SearchActivity"
             android:exported="false" />
         <activity
