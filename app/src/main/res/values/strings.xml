@@ -1,3 +1,22 @@
 <resources>
-    <string name="app_name">Recipe</string>
+    <string name="app_name">Банк рецептов</string>
+    <string name="title">Название</string>
+    <string name="category">Категория</string>
+    <string name="ingredients">Ингредиенты</string>
+    <string name="instructions">Приготовление</string>
+    <string name="cooking_time">Время (мин)</string>
+    <string name="difficulty">Сложность</string>
+    <string name="add">Добавить</string>
+    <string name="edit">Редактировать</string>
+    <string name="del">Удалить</string>
+    <string name="find">Найти</string>
+    <string name="ok">ОК</string>
+    <string name="exit">Назад</string>
+    <string name="search_by_name">Поиск по названию</string>
+    <string name="search_by_category">Поиск по категории</string>
+    <string name="msg_add_success">Рецепт добавлен!</string>
+    <string name="msg_del_success">Рецепт удалён!</string>
+    <string name="msg_edit_success">Рецепт обновлён!</string>
+    <string name="msg_error">Такого рецепта не существует!</string>
+    <string name="msg_empty_field">Заполните все поля!</string>
 </resources>

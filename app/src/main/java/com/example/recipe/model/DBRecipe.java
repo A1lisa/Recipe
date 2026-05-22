@@ -1,0 +1,161 @@
+package com.example.recipe.model;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import java.util.ArrayList;
+
+public class DBRecipe {
+    private SQLiteDatabase dbRecipes;
+
+    public DBRecipe(Context context) {
+        OpenHelper mOpenHelper = new OpenHelper(context);
+        dbRecipes = mOpenHelper.getWritableDatabase();
+    }
+
+    // Добавление рецепта
+    public long insert(String name, String category, String ingredients,
+                       String instructions, int cookingTime, String difficulty) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("Name", name);
+        contentValues.put("Category", category);
+        contentValues.put("Ingredients", ingredients);
+        contentValues.put("Instructions", instructions);
+        contentValues.put("CookingTime", cookingTime);
+        contentValues.put("Difficulty", difficulty);
+        return dbRecipes.insert("RECIPES", null, contentValues);
+    }
+
+    // Обновление рецепта
+    public int update(int id, String name, String category, String ingredients,
+                      String instructions, int cookingTime, String difficulty) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("Name", name);
+        contentValues.put("Category", category);
+        contentValues.put("Ingredients", ingredients);
+        contentValues.put("Instructions", instructions);
+        contentValues.put("CookingTime", cookingTime);
+        contentValues.put("Difficulty", difficulty);
+        return dbRecipes.update("RECIPES", contentValues, "Number = ?",
+                new String[]{String.valueOf(id)});
+    }
+
+    // Удаление рецепта
+    public int delete(long number) {
+        return dbRecipes.delete("RECIPES", "Number = ?",
+                new String[]{String.valueOf(number)});
+    }
+
+    // Поиск рецепта по ID
+    public String[] find(long number) {
+        Cursor mCursor = dbRecipes.query("RECIPES", null, "Number = ?",
+                new String[]{String.valueOf(number)}, null, null, null);
+        String[] recipe = new String[6];
+        mCursor.moveToFirst();
+        recipe[0] = Integer.toString(mCursor.getInt(0));  // id
+        recipe[1] = mCursor.getString(1);                 // name
+        recipe[2] = mCursor.getString(2);                 // category
+        recipe[3] = mCursor.getString(3);                 // ingredients
+        recipe[4] = mCursor.getString(4);                 // instructions
+        recipe[5] = Integer.toString(mCursor.getInt(5));  // cookingTime
+        return recipe;
+    }
+
+    // Поиск по названию
+    public ArrayList<String> searchByName(String searchText) {
+        Cursor mCursor = dbRecipes.rawQuery(
+                "SELECT * FROM RECIPES WHERE LOWER(Name) LIKE LOWER(?)",
+                new String[]{"%" + searchText + "%"});
+        ArrayList<String> arr = new ArrayList<>();
+        if (mCursor.moveToFirst()) {
+            do {
+                arr.add(mCursor.getInt(0) + " | " +
+                        mCursor.getString(1) + " | " +
+                        mCursor.getString(2) + " | " +
+                        mCursor.getInt(5) + " мин | " +
+                        mCursor.getString(6));
+            } while (mCursor.moveToNext());
+        }
+        mCursor.close();
+        return arr;
+    }
+
+    // Поиск по категории
+    public ArrayList<String> searchByCategory(String category) {
+        Cursor mCursor = dbRecipes.query("RECIPES", null, "Category = ?",
+                new String[]{category}, null, null, null);
+        ArrayList<String> arr = new ArrayList<>();
+        if (mCursor.moveToFirst()) {
+            do {
+                arr.add(mCursor.getInt(0) + " | " +
+                        mCursor.getString(1) + " | " +
+                        mCursor.getString(2) + " | " +
+                        mCursor.getInt(5) + " мин | " +
+                        mCursor.getString(6));
+            } while (mCursor.moveToNext());
+        }
+        mCursor.close();
+        return arr;
+    }
+
+    // Получить все рецепты
+    public ArrayList<String> selectAll() {
+        Cursor mCursor = dbRecipes.query("RECIPES", null, null, null, null, null, null);
+        ArrayList<String> arr = new ArrayList<>();
+        if (mCursor.moveToFirst()) {
+            do {
+                arr.add(mCursor.getInt(0) + " | " +
+                        mCursor.getString(1) + " | " +
+                        mCursor.getString(2) + " | " +
+                        mCursor.getInt(5) + " мин | " +
+                        mCursor.getString(6));
+            } while (mCursor.moveToNext());
+        }
+        mCursor.close();
+        return arr;
+    }
+
+    // Получить все категории
+    public ArrayList<String> getAllCategories() {
+        Cursor mCursor = dbRecipes.rawQuery("SELECT DISTINCT Category FROM RECIPES ORDER BY Category", null);
+        ArrayList<String> arr = new ArrayList<>();
+        if (mCursor.moveToFirst()) {
+            do {
+                arr.add(mCursor.getString(0));
+            } while (mCursor.moveToNext());
+        }
+        mCursor.close();
+        return arr;
+    }
+
+    // Внутренний класс для работы с SQLite
+    public class OpenHelper extends SQLiteOpenHelper {
+        public OpenHelper(Context context) {
+            super(context, "recipes.db", null, 1);
+        }
+
+        @Override
+        public void onCreate(SQLiteDatabase db) {
+            db.execSQL("CREATE TABLE RECIPES ("
+                    + "Number integer primary key autoincrement,"
+                    + "Name text,"
+                    + "Category text,"
+                    + "Ingredients text,"
+                    + "Instructions text,"
+                    + "CookingTime integer,"
+                    + "Difficulty text" + ");");
+
+            // Добавляем категории по умолчанию
+            db.execSQL("INSERT INTO RECIPES (Name, Category, Ingredients, Instructions, CookingTime, Difficulty) VALUES " +
+                    "('Пример рецепта', 'Завтрак', 'Яйца, Молоко, Мука', 'Смешать и пожарить', 15, 'Легко')");
+        }
+
+        @Override
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+            db.execSQL("DROP TABLE IF EXISTS RECIPES");
+            onCreate(db);
+        }
+    }
+}
