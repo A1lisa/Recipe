@@ -15,7 +15,6 @@ public class DBRecipe {
         dbRecipes = mOpenHelper.getWritableDatabase();
     }
 
-    // Добавление рецепта
     public long insert(String name, String category, String ingredients,
                        String instructions, int cookingTime, String difficulty) {
         ContentValues contentValues = new ContentValues();
@@ -28,7 +27,6 @@ public class DBRecipe {
         return dbRecipes.insert("RECIPES", null, contentValues);
     }
 
-    // Обновление рецепта
     public int update(int id, String name, String category, String ingredients,
                       String instructions, int cookingTime, String difficulty) {
         ContentValues contentValues = new ContentValues();
@@ -42,13 +40,11 @@ public class DBRecipe {
                 new String[]{String.valueOf(id)});
     }
 
-    // Удаление рецепта
     public int delete(long number) {
         return dbRecipes.delete("RECIPES", "Number = ?",
                 new String[]{String.valueOf(number)});
     }
 
-    // Поиск рецепта по ID
     public String[] find(long number) {
         Cursor mCursor = dbRecipes.query("RECIPES", null, "Number = ?",
                 new String[]{String.valueOf(number)}, null, null, null);
@@ -63,7 +59,6 @@ public class DBRecipe {
         return recipe;
     }
 
-    // Поиск по названию
     public ArrayList<String> searchByName(String searchText) {
         Cursor mCursor = dbRecipes.rawQuery(
                 "SELECT * FROM RECIPES WHERE LOWER(Name) LIKE LOWER(?)",
@@ -82,7 +77,6 @@ public class DBRecipe {
         return arr;
     }
 
-    // Поиск по категории
     public ArrayList<String> searchByCategory(String category) {
         Cursor mCursor = dbRecipes.query("RECIPES", null, "Category = ?",
                 new String[]{category}, null, null, null);
@@ -100,7 +94,6 @@ public class DBRecipe {
         return arr;
     }
 
-    // Получить все рецепты
     public ArrayList<String> selectAll() {
         Cursor mCursor = dbRecipes.query("RECIPES", null, null, null, null, null, null);
         ArrayList<String> arr = new ArrayList<>();
@@ -117,7 +110,6 @@ public class DBRecipe {
         return arr;
     }
 
-    // Получить все категории
     public ArrayList<String> getAllCategories() {
         Cursor mCursor = dbRecipes.rawQuery("SELECT DISTINCT Category FROM RECIPES ORDER BY Category", null);
         ArrayList<String> arr = new ArrayList<>();
@@ -130,7 +122,6 @@ public class DBRecipe {
         return arr;
     }
 
-    // Внутренний класс для работы с SQLite
     public class OpenHelper extends SQLiteOpenHelper {
         public OpenHelper(Context context) {
             super(context, "recipes.db", null, 1);
@@ -147,7 +138,6 @@ public class DBRecipe {
                     + "CookingTime integer,"
                     + "Difficulty text" + ");");
 
-            // Добавляем категории по умолчанию
             db.execSQL("INSERT INTO RECIPES (Name, Category, Ingredients, Instructions, CookingTime, Difficulty) VALUES " +
                     "('Пример рецепта', 'Завтрак', 'Яйца, Молоко, Мука', 'Смешать и пожарить', 15, 'Легко')");
         }
