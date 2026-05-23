@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
     <application
         android:name=".App"
         android:allowBackup="true"
@@ -15,9 +14,7 @@
         <activity
             android:name=".view.ViewRecipeActivity"
             android:exported="false" />
-        <activity
-            android:name=".view.SearchActivity"
-            android:exported="false" />
+
         <activity
             android:name=".view.AddRecipeActivity"
             android:exported="false" />

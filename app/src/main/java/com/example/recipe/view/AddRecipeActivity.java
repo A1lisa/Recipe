@@ -18,6 +18,7 @@ public class AddRecipeActivity extends AppCompatActivity implements View.OnClick
     private EditText editName, editIngredients, editInstructions, editTime, editURL;
     private Spinner spinnerCategory, spinnerDifficulty;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
