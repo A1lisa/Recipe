@@ -41,24 +41,24 @@ public class ViewRecipeActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void loadRecipe() {
-        long id = Long.parseLong(recipeId);
-        recipeData = App.getApp().getDBRecipes().find(id);
+        try {
+            long id = Long.parseLong(recipeId);
+            recipeData = App.getApp().getDBRecipes().find(id);
 
-        viewName.setText(recipeData[1]); // name
-        viewCategory.setText("Категория: " + recipeData[2]); // category
-        viewTimeDifficulty.setText("Время: " + recipeData[5] + " мин | Сложность: " + recipeData[6]); // time, difficulty
-        viewIngredients.setText(recipeData[3]); // ingredients
-        viewInstructions.setText(recipeData[4]); // instructions
+            viewName.setText(recipeData[1]);
+            viewCategory.setText("Категория: " + recipeData[2]);
+            viewTimeDifficulty.setText("Время: " + recipeData[5] + " мин | Сложность: " + recipeData[6]);
+            viewIngredients.setText(recipeData[3]);
+            viewInstructions.setText(recipeData[4]);
+        } catch (Exception e) {
+            Toast.makeText(this, "Ошибка загрузки рецепта", Toast.LENGTH_SHORT).show();
+            finish();
+        }
     }
 
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.backButton) {
-            finish();
-        } else if (v.getId() == R.id.deleteButton) {
-            long id = Long.parseLong(recipeId);
-            App.getApp().getDBRecipes().delete(id);
-            Toast.makeText(this, R.string.msg_del_success, Toast.LENGTH_SHORT).show();
             finish();
         } else if (v.getId() == R.id.editButton) {
             Intent intent = new Intent(this, AddRecipeActivity.class);
@@ -66,6 +66,22 @@ public class ViewRecipeActivity extends AppCompatActivity implements View.OnClic
             intent.putExtra("recipe_id", recipeId);
             startActivity(intent);
             finish();
+        } else if (v.getId() == R.id.deleteButton) {
+            new androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Удаление рецепта")
+                    .setMessage("Вы уверены, что хотите удалить рецепт \"" + viewName.getText() + "\"?")
+                    .setPositiveButton("Да", (dialog, which) -> {
+                        try {
+                            long id = Long.parseLong(recipeId);
+                            App.getApp().getDBRecipes().delete(id);
+                            Toast.makeText(this, R.string.msg_del_success, Toast.LENGTH_SHORT).show();
+                            finish();
+                        } catch (Exception e) {
+                            Toast.makeText(this, "Ошибка удаления", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .setNegativeButton("Нет", null)
+                    .show();
         }
     }
 }

@@ -9,17 +9,20 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.Toast;
 import com.example.recipe.App;
 import com.example.recipe.R;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class MainActivity extends Activity implements View.OnClickListener {
     private ListView mListView;
     private Button addButton, searchBtn, showAllBtn;
     private EditText searchEdit;
+    private Spinner spinnerCategory;
     private ArrayList<String> listRecipes;
-    private ArrayAdapter<String> adapter;
+    private RecipeAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,19 +34,38 @@ public class MainActivity extends Activity implements View.OnClickListener {
         searchBtn = findViewById(R.id.searchBtn);
         showAllBtn = findViewById(R.id.showAllBtn);
         searchEdit = findViewById(R.id.searchEdit);
+        spinnerCategory = findViewById(R.id.spinnerCategory);
 
         addButton.setOnClickListener(this);
         searchBtn.setOnClickListener(this);
         showAllBtn.setOnClickListener(this);
 
-        loadAllRecipes();
+        loadCategories();
 
-        // При клике на элемент списка — открываем просмотр
+        spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String category = parent.getItemAtPosition(position).toString();
+                if (category.equals("Все")) {
+                    loadAllRecipes();
+                } else {
+                    listRecipes = App.getApp().getDBRecipes().searchByCategory(category);
+                    adapter = new RecipeAdapter(MainActivity.this, listRecipes);
+                    mListView.setAdapter(adapter);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                loadAllRecipes();
+            }
+        });
+
+        loadAllRecipes();
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String selected = listRecipes.get(position);
-                // Извлекаем ID рецепта (первое число до " | ")
                 String recipeId = selected.split(" \\| ")[0];
                 Intent intent = new Intent(MainActivity.this, ViewRecipeActivity.class);
                 intent.putExtra("recipe_id", recipeId);
@@ -52,15 +74,28 @@ public class MainActivity extends Activity implements View.OnClickListener {
         });
     }
 
+    private void loadCategories() {
+        ArrayList<String> categories = App.getApp().getDBRecipes().getAllCategories();
+        if (categories.isEmpty()) {
+            categories = new ArrayList<>(Arrays.asList("Завтрак", "Обед", "Ужин", "Десерт", "Салат", "Супы", "Выпечка"));
+        }
+        categories.add(0, "Все");
+        ArrayAdapter<String> catAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, categories);
+        catAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerCategory.setAdapter(catAdapter);
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
         loadAllRecipes();
+        loadCategories();
     }
 
     private void loadAllRecipes() {
         listRecipes = App.getApp().getDBRecipes().selectAll();
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, listRecipes);
+        adapter = new RecipeAdapter(this, listRecipes);
         mListView.setAdapter(adapter);
     }
 
@@ -71,15 +106,23 @@ public class MainActivity extends Activity implements View.OnClickListener {
             startActivity(intent);
         } else if (v.getId() == R.id.searchBtn) {
             String query = searchEdit.getText().toString().trim();
+            String category = spinnerCategory.getSelectedItem().toString();
+
             if (query.isEmpty()) {
-                Toast.makeText(this, "Введите название для поиска", Toast.LENGTH_SHORT).show();
-                return;
+                if (!category.equals("Все")) {
+                    listRecipes = App.getApp().getDBRecipes().searchByCategory(category);
+                } else {
+                    loadAllRecipes();
+                }
+            } else {
+                listRecipes = App.getApp().getDBRecipes().searchByNameAndCategory(query, category);
             }
-            listRecipes = App.getApp().getDBRecipes().searchByName(query);
-            adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, listRecipes);
+
+            adapter = new RecipeAdapter(this, listRecipes);
             mListView.setAdapter(adapter);
         } else if (v.getId() == R.id.showAllBtn) {
             searchEdit.setText("");
+            spinnerCategory.setSelection(0);
             loadAllRecipes();
         }
     }

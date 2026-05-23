@@ -18,7 +18,7 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
     private ListView searchList;
     private ArrayAdapter<String> adapter;
     private ArrayList<String> results;
-    private int currentAction = 0; // 1-поиск по имени, 2-поиск по категории, 3-удаление
+    private int currentAction = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,13 +69,13 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
         }
 
         switch (currentAction) {
-            case 1: // поиск по названию
+            case 1:
                 results = App.getApp().getDBRecipes().searchByName(input);
                 break;
-            case 2: // поиск по категории
+            case 2:
                 results = App.getApp().getDBRecipes().searchByCategory(input);
                 break;
-            case 3: // удаление
+            case 3:
                 try {
                     long number = Long.parseLong(input);
                     int deleted = App.getApp().getDBRecipes().delete(number);

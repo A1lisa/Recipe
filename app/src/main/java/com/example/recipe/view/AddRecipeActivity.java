@@ -22,34 +22,6 @@ public class AddRecipeActivity extends AppCompatActivity implements View.OnClick
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_recipe);
-        // Проверяем, режим редактирования или добавления
-        boolean isEditMode = getIntent().getBooleanExtra("edit_mode", false);
-        if (isEditMode) {
-            String editId = getIntent().getStringExtra("recipe_id");
-            if (editId != null) {
-                long id = Long.parseLong(editId);
-                String[] data = App.getApp().getDBRecipes().find(id);
-                editName.setText(data[1]);
-                // Выбираем категорию в спиннере
-                for (int i = 0; i < spinnerCategory.getCount(); i++) {
-                    if (spinnerCategory.getItemAtPosition(i).toString().equals(data[2])) {
-                        spinnerCategory.setSelection(i);
-                        break;
-                    }
-                }
-                editIngredients.setText(data[3]);
-                editInstructions.setText(data[4]);
-                editTime.setText(data[5]);
-                // Выбираем сложность
-                for (int i = 0; i < spinnerDifficulty.getCount(); i++) {
-                    if (spinnerDifficulty.getItemAtPosition(i).toString().equals(data[6])) {
-                        spinnerDifficulty.setSelection(i);
-                        break;
-                    }
-                }
-                saveButton.setText("Сохранить");
-            }
-        }
 
         editName = findViewById(R.id.editName);
         editIngredients = findViewById(R.id.editIngredients);
@@ -63,7 +35,6 @@ public class AddRecipeActivity extends AppCompatActivity implements View.OnClick
         saveButton.setOnClickListener(this);
         exitButton.setOnClickListener(this);
 
-        // Загружаем категории из БД
         ArrayList<String> categories = App.getApp().getDBRecipes().getAllCategories();
         if (categories.isEmpty()) {
             categories = new ArrayList<>(Arrays.asList("Завтрак", "Обед", "Ужин", "Десерт", "Салат", "Супы", "Выпечка"));
@@ -73,12 +44,40 @@ public class AddRecipeActivity extends AppCompatActivity implements View.OnClick
         categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCategory.setAdapter(categoryAdapter);
 
-        // Сложность
         ArrayList<String> difficulties = new ArrayList<>(Arrays.asList("Легко", "Средне", "Сложно"));
         ArrayAdapter<String> difficultyAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, difficulties);
         difficultyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerDifficulty.setAdapter(difficultyAdapter);
+
+        boolean isEditMode = getIntent().getBooleanExtra("edit_mode", false);
+        if (isEditMode) {
+            String editId = getIntent().getStringExtra("recipe_id");
+            if (editId != null) {
+                long id = Long.parseLong(editId);
+                String[] data = App.getApp().getDBRecipes().find(id);
+                editName.setText(data[1]);
+                for (int i = 0; i < spinnerCategory.getCount(); i++) {
+                    if (spinnerCategory.getItemAtPosition(i).toString().equals(data[2])) {
+                        spinnerCategory.setSelection(i);
+                        break;
+                    }
+                }
+                editIngredients.setText(data[3]);
+                editInstructions.setText(data[4]);
+                editTime.setText(data[5]);
+                String diff = data[6];
+                if (diff != null) {
+                    for (int i = 0; i < spinnerDifficulty.getCount(); i++) {
+                        if (spinnerDifficulty.getItemAtPosition(i).toString().equals(diff)) {
+                            spinnerDifficulty.setSelection(i);
+                            break;
+                        }
+                    }
+                }
+                saveButton.setText("Сохранить");
+            }
+        }
     }
 
     @Override
@@ -113,6 +112,8 @@ public class AddRecipeActivity extends AppCompatActivity implements View.OnClick
                 App.getApp().getDBRecipes().insert(name, category, ingredients, instructions, time, difficulty);
                 Toast.makeText(this, R.string.msg_add_success, Toast.LENGTH_SHORT).show();
             }
+            finish();
+        }else if (v.getId() == R.id.exitButton) {
             finish();
         }
 
