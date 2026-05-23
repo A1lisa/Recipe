@@ -40,6 +40,32 @@ public class MainActivity extends Activity implements View.OnClickListener {
         searchBtn.setOnClickListener(this);
         showAllBtn.setOnClickListener(this);
 
+        searchEdit.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String query = s.toString().trim();
+                String category = spinnerCategory.getSelectedItem().toString();
+
+                if (query.isEmpty()) {
+                    if (!category.equals("Все")) {
+                        listRecipes = App.getApp().getDBRecipes().searchByCategory(category);
+                    } else {
+                        loadAllRecipes();
+                    }
+                } else {
+                    listRecipes = App.getApp().getDBRecipes().searchByNameAndCategory(query, category);
+                }
+
+                adapter = new RecipeAdapter(MainActivity.this, listRecipes);
+                mListView.setAdapter(adapter);
+            }
+            @Override
+            public void afterTextChanged(android.text.Editable s) {}
+        });
+
         loadCategories();
 
         spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {

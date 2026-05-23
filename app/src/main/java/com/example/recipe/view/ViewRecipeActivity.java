@@ -34,10 +34,20 @@ public class ViewRecipeActivity extends AppCompatActivity implements View.OnClic
         deleteButton.setOnClickListener(this);
         backButton.setOnClickListener(this);
 
+        Button openURLButton = findViewById(R.id.openURLButton);
+
         recipeId = getIntent().getStringExtra("recipe_id");
         if (recipeId != null) {
             loadRecipe();
         }
+        openURLButton.setOnClickListener(v -> {
+            if (recipeData[7] != null && !recipeData[7].isEmpty()) {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(recipeData[7]));
+                startActivity(browserIntent);
+            } else {
+                Toast.makeText(this, "Ссылка не указана", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void loadRecipe() {

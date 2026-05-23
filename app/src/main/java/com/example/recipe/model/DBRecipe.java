@@ -17,7 +17,7 @@ public class DBRecipe {
     }
 
     public long insert(String name, String category, String ingredients,
-                       String instructions, int cookingTime, String difficulty) {
+                       String instructions, int cookingTime, String difficulty, String url) {
         ContentValues contentValues = new ContentValues();
         contentValues.put("Name", name);
         contentValues.put("Category", category);
@@ -25,13 +25,14 @@ public class DBRecipe {
         contentValues.put("Instructions", instructions);
         contentValues.put("CookingTime", cookingTime);
         contentValues.put("Difficulty", difficulty);
+        contentValues.put("URL", url);
         long result = dbRecipes.insert("RECIPES", null, contentValues);
         addCategory(category);
         return result;
     }
 
     public int update(int id, String name, String category, String ingredients,
-                      String instructions, int cookingTime, String difficulty) {
+                      String instructions, int cookingTime, String difficulty, String url) {
         ContentValues contentValues = new ContentValues();
         contentValues.put("Name", name);
         contentValues.put("Category", category);
@@ -39,6 +40,7 @@ public class DBRecipe {
         contentValues.put("Instructions", instructions);
         contentValues.put("CookingTime", cookingTime);
         contentValues.put("Difficulty", difficulty);
+        contentValues.put("URL", url);
         addCategory(category);
         return dbRecipes.update("RECIPES", contentValues, "Number = ?",
                 new String[]{String.valueOf(id)});
@@ -52,7 +54,7 @@ public class DBRecipe {
     public String[] find(long number) {
         Cursor mCursor = dbRecipes.query("RECIPES", null, "Number = ?",
                 new String[]{String.valueOf(number)}, null, null, null);
-        String[] recipe = new String[7];
+        String[] recipe = new String[8];
         if (mCursor.moveToFirst()) {
             recipe[0] = Integer.toString(mCursor.getInt(0));  // id
             recipe[1] = mCursor.getString(1);                 // name
@@ -61,6 +63,7 @@ public class DBRecipe {
             recipe[4] = mCursor.getString(4);                 // instructions
             recipe[5] = Integer.toString(mCursor.getInt(5));  // cookingTime
             recipe[6] = mCursor.getString(6);                 // difficulty
+            recipe[7] = mCursor.getString(7);  // URL
         }
         mCursor.close();
         return recipe;
@@ -178,7 +181,7 @@ public class DBRecipe {
 
     public class OpenHelper extends SQLiteOpenHelper {
         public OpenHelper(Context context) {
-            super(context, "recipes.db", null, 1);
+            super(context, "recipes.db", null, 2);
         }
 
         @Override
@@ -190,7 +193,9 @@ public class DBRecipe {
                     + "Ingredients text,"
                     + "Instructions text,"
                     + "CookingTime integer,"
-                    + "Difficulty text" + ");");
+                    + "Difficulty text,"
+                    + "URL text" + ");");
+
 
             db.execSQL("CREATE TABLE IF NOT EXISTS categories ("
                     + "id integer primary key autoincrement,"

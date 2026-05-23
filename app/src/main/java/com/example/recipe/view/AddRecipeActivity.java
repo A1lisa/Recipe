@@ -15,7 +15,7 @@ import java.util.Arrays;
 
 public class AddRecipeActivity extends AppCompatActivity implements View.OnClickListener {
     private Button saveButton, exitButton;
-    private EditText editName, editIngredients, editInstructions, editTime;
+    private EditText editName, editIngredients, editInstructions, editTime, editURL;
     private Spinner spinnerCategory, spinnerDifficulty;
 
     @Override
@@ -29,6 +29,7 @@ public class AddRecipeActivity extends AppCompatActivity implements View.OnClick
         editTime = findViewById(R.id.editTime);
         spinnerCategory = findViewById(R.id.spinnerCategory);
         spinnerDifficulty = findViewById(R.id.spinnerDifficulty);
+        editURL = findViewById(R.id.editURL);
         saveButton = findViewById(R.id.saveButton);
         exitButton = findViewById(R.id.exitButton);
 
@@ -67,6 +68,7 @@ public class AddRecipeActivity extends AppCompatActivity implements View.OnClick
                 editInstructions.setText(data[4]);
                 editTime.setText(data[5]);
                 String diff = data[6];
+                editURL.setText(data[7]);
                 if (diff != null) {
                     for (int i = 0; i < spinnerDifficulty.getCount(); i++) {
                         if (spinnerDifficulty.getItemAtPosition(i).toString().equals(diff)) {
@@ -89,8 +91,9 @@ public class AddRecipeActivity extends AppCompatActivity implements View.OnClick
             String instructions = editInstructions.getText().toString().trim();
             String timeStr = editTime.getText().toString().trim();
             String difficulty = spinnerDifficulty.getSelectedItem().toString();
+            String url = editURL.getText().toString().trim();
 
-            if (name.isEmpty() || ingredients.isEmpty() || instructions.isEmpty()) {
+            if (name.isEmpty()) {
                 Toast.makeText(this, R.string.msg_empty_field, Toast.LENGTH_LONG).show();
                 return;
             }
@@ -105,11 +108,11 @@ public class AddRecipeActivity extends AppCompatActivity implements View.OnClick
                 String editId = getIntent().getStringExtra("recipe_id");
                 if (editId != null) {
                     int id = Integer.parseInt(editId);
-                    App.getApp().getDBRecipes().update(id, name, category, ingredients, instructions, time, difficulty);
+                    App.getApp().getDBRecipes().update(id, name, category, ingredients, instructions, time, difficulty, url);
                     Toast.makeText(this, "Рецепт обновлён!", Toast.LENGTH_SHORT).show();
                 }
             } else {
-                App.getApp().getDBRecipes().insert(name, category, ingredients, instructions, time, difficulty);
+                App.getApp().getDBRecipes().insert(name, category, ingredients, instructions, time, difficulty, url);
                 Toast.makeText(this, R.string.msg_add_success, Toast.LENGTH_SHORT).show();
             }
             finish();
